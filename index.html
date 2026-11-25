@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>National Day Volunteers</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="wrap topbar-in">
+        <div class="brand">
+          <span class="flag" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <div class="brand-txt">
+            <h1>National Day Volunteers</h1>
+            <p class="sync" id="syncStatus"><span class="dot"></span>Starting…</p>
+          </div>
+        </div>
+        <button class="btn primary" id="addBtn" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+          Add
+        </button>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="stats" id="stats" aria-label="Roster summary"></section>
+
+      <div class="toolbar">
+        <input
+          id="search"
+          class="search"
+          type="search"
+          placeholder="Search name, spot or phone"
+          autocomplete="off"
+          aria-label="Search volunteers"
+        />
+        <div class="chips" id="filters" role="group" aria-label="Filter by status"></div>
+      </div>
+
+      <div class="toolrow">
+        <button class="btn tiny ghost" id="phonesBtn" type="button">Paste phone numbers</button>
+      </div>
+
+      <section id="list" class="list" aria-live="polite"></section>
+
+      <details class="timetable">
+        <summary>Shift timetable</summary>
+        <ul id="timetable"></ul>
+      </details>
+    </main>
+
+    <dialog id="addDialog" class="sheet">
+      <form method="dialog" id="addForm">
+        <header class="sheet-head">
+          <h2>Add volunteer</h2>
+          <button class="icon" value="cancel" aria-label="Close">✕</button>
+        </header>
+        <div class="sheet-body">
+          <label class="field block">
+            <span class="flabel">Full name</span>
+            <input name="name" required autocomplete="off" placeholder="e.g. Sara Ahmed" />
+          </label>
+          <label class="field block">
+            <span class="flabel">Duty spot</span>
+            <select name="spot" id="addSpot"></select>
+          </label>
+          <label class="field block">
+            <span class="flabel">Batch</span>
+            <select name="batch">
+              <option value="">No batch</option>
+              <option value="1">Batch 1</option>
+              <option value="2">Batch 2</option>
+            </select>
+          </label>
+          <label class="field block">
+            <span class="flabel">Phone <em>(optional)</em></span>
+            <input name="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="+971 50 000 0000" />
+          </label>
+        </div>
+        <menu class="sheet-actions">
+          <button class="btn ghost" value="cancel" type="submit" formnovalidate>Cancel</button>
+          <button class="btn primary" value="save" type="submit">Add volunteer</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <dialog id="phonesDialog" class="sheet">
+      <header class="sheet-head">
+        <div>
+          <h2>Paste phone numbers</h2>
+          <p class="hint">Copy the name and number columns from your other sheet.</p>
+        </div>
+        <button class="icon" id="phonesClose" type="button" aria-label="Close">✕</button>
+      </header>
+      <div class="sheet-body">
+        <textarea
+          id="phonesInput"
+          class="paste"
+          rows="9"
+          spellcheck="false"
+          placeholder="Mohit Manoj Nair, +971 50 123 4567&#10;Muhammad Afaaf, +971 55 987 6543"
+        ></textarea>
+        <p class="hint">One person per line — name then number. Tabs, commas or just a space before the number all work.</p>
+        <div id="phonesResult" class="result" hidden></div>
+      </div>
+      <menu class="sheet-actions">
+        <button class="btn ghost" id="phonesCancel" type="button">Close</button>
+        <button class="btn primary" id="phonesSave" type="button">Save numbers</button>
+      </menu>
+    </dialog>
+
+    <dialog id="replaceDialog" class="sheet">
+      <header class="sheet-head">
+        <div>
+          <h2>Assign replacement</h2>
+          <p class="hint" id="replaceWho"></p>
+        </div>
+        <button class="icon" id="replaceClose" type="button" aria-label="Close">✕</button>
+      </header>
+      <div class="sheet-body">
+        <input id="replaceSearch" class="search" type="search" placeholder="Search volunteers" autocomplete="off" />
+        <div id="replaceList" class="picks"></div>
+      </div>
+    </dialog>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

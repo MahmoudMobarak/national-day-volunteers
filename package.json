@@ -1,0 +1,8 @@
+{
+  "name": "national-day-volunteers",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node serve.js"
+  }
+}
