@@ -8,15 +8,19 @@ A mobile-friendly duty board for the National Day volunteers. Static files only 
 - **Add** new volunteers at any time (name, spot, batch, phone).
 - Search by name, spot or phone, filter by status.
 
-## Publish on GitHub Pages
+## Where it lives
 
-1. Create a repository and upload every file in this folder (`index.html`, `styles.css`, `app.js`, `data.js`, `config.js`, `sync.js`, `.nojekyll`, `package.json`, `serve.js` — `serve.js`/`package.json` are only for local preview).
-2. Repo → **Settings → Pages** → Source: **Deploy from a branch** → Branch: `main`, folder `/ (root)` → **Save**.
-3. The site appears at `https://<username>.github.io/<repo>/` in a minute or two.
+The site is published from this repository with GitHub Pages:
 
-## Turn on live updates
+**https://mahmoudmobarak.github.io/national-day-volunteers/**
 
-Without configuration the site saves on each device only (the badge says "Local only"). To share one live roster:
+Pages is set to **Deploy from a branch → `main` → `/ (root)`**, so every push to `main` republishes the site within a minute or two. No build step is involved.
+
+## Live updates
+
+Live sync is already configured: `config.js` holds the Firebase project `national-day-volunteers`, and the badge reads "Live · updates for everyone". Without those values the site still works but saves on each device only (badge: "Local only").
+
+To point the site at a different Firebase project:
 
 1. <https://console.firebase.google.com> → **Add project**.
 2. **Build → Realtime Database → Create Database** → choose a location → **Start in test mode**.
