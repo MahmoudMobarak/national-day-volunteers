@@ -285,6 +285,12 @@ body {
   border-left-color: var(--green);
 }
 
+.batch.is-all {
+  background: #eef2f8;
+  border-color: #d8dfe9;
+  border-left-color: #98a4b6;
+}
+
 .batch-txt {
   flex: 1;
   min-width: 0;
@@ -304,9 +310,17 @@ body {
 }
 
 .batch-acts {
-  display: flex;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
   flex: none;
+  width: 190px;
+}
+
+.batch-acts .btn {
+  padding-left: 6px;
+  padding-right: 6px;
+  white-space: nowrap;
 }
 
 .btn:disabled {

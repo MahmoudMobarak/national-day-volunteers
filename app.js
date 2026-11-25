@@ -117,24 +117,43 @@ function renderChips() {
     .join("");
 }
 
+function groupList() {
+  return [
+    { key: "all", label: "Everyone", people: students },
+    ...BATCHES.map(({ key, label, batch }) => ({
+      key,
+      label,
+      people: students.filter((s) => s.batch === batch),
+    })),
+  ];
+}
+
+const groupPeople = (key) =>
+  key === "all" ? students : students.filter((s) => s.batch === (key === "" ? null : Number(key)));
+
 function renderBatches() {
-  batchBarEl.innerHTML = BATCHES.map(({ key, label, batch }) => {
-    const people = students.filter((s) => s.batch === batch);
-    const on = people.filter((s) => s.onDuty && s.onShift).length;
-    const off = people.length - on;
-    const empty = people.length === 0;
-    return `
-      <div class="batch${on ? " is-on" : ""}">
+  batchBarEl.innerHTML = groupList()
+    .map(({ key, label, people }) => {
+      const onDuty = people.filter((s) => s.onDuty).length;
+      const onShift = people.filter((s) => s.onDuty && s.onShift).length;
+      const empty = people.length === 0;
+      const dis = empty ? "disabled" : "";
+      const cls = ["batch", key === "all" ? "is-all" : "", onShift ? "is-on" : ""].filter(Boolean).join(" ");
+      return `
+      <div class="${cls}">
         <div class="batch-txt">
           <b>${esc(label)}</b>
-          <span>${empty ? "Nobody here yet" : `${on} on shift · ${off} off shift`}</span>
+          <span>${empty ? "Nobody here yet" : `${onDuty} on duty · ${onShift} on shift`}</span>
         </div>
         <div class="batch-acts">
-          <button type="button" class="btn tiny${!empty && !off ? " primary" : ""}" data-batch-on="${esc(key)}" ${empty ? "disabled" : ""}>On shift</button>
-          <button type="button" class="btn tiny ghost" data-batch-off="${esc(key)}" ${empty ? "disabled" : ""}>Off shift</button>
+          <button type="button" class="btn tiny" data-group="${esc(key)}" data-group-act="onduty" ${dis}>All on duty</button>
+          <button type="button" class="btn tiny ghost" data-group="${esc(key)}" data-group-act="offduty" ${dis}>All off duty</button>
+          <button type="button" class="btn tiny${!empty && !onShift ? " primary" : ""}" data-group="${esc(key)}" data-group-act="onshift" ${dis}>All on shift</button>
+          <button type="button" class="btn tiny ghost" data-group="${esc(key)}" data-group-act="offshift" ${dis}>All off shift</button>
         </div>
       </div>`;
-  }).join("");
+    })
+    .join("");
 }
 
 function renderSync() {
@@ -295,24 +314,38 @@ listEl.addEventListener("click", (e) => {
 });
 
 batchBarEl.addEventListener("click", (e) => {
-  const onBtn = e.target.closest("[data-batch-on]");
-  const offBtn = onBtn ? null : e.target.closest("[data-batch-off]");
-  if (!onBtn && !offBtn) return;
+  const btn = e.target.closest("[data-group-act]");
+  if (!btn) return;
 
-  const key = onBtn ? onBtn.dataset.batchOn : offBtn.dataset.batchOff;
-  const batch = key === "" ? null : Number(key);
-  const people = students.filter((s) => s.batch === batch);
+  const action = btn.dataset.groupAct;
+  const people = groupPeople(btn.dataset.group);
   if (!people.length) return;
 
-  const turnOn = !!onBtn;
   people.forEach((s) => {
-    s.onDuty = true;
-    s.onShift = turnOn;
-    if (!s.at) s.at = s.spot;
+    switch (action) {
+      case "onduty":
+      case "onshift":
+        // On duty means working, the same as ticking a card; untick shift for a break.
+        s.onDuty = true;
+        s.onShift = true;
+        if (!s.at) s.at = s.spot;
+        break;
+      case "offshift":
+        s.onDuty = true;
+        s.onShift = false;
+        break;
+      case "offduty":
+        s.onDuty = false;
+        s.onShift = false;
+        s.coveringFor = null;
+        break;
+      default:
+        return;
+    }
   });
 
   localSave(students);
-  if (mode === "live") people.forEach((s) => pushStudent(s).catch((err) => console.warn("[batch]", err)));
+  if (mode === "live") people.forEach((s) => pushStudent(s).catch((err) => console.warn("[group]", err)));
   else sendLocal(students);
   render();
 });
