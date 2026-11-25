@@ -131,26 +131,64 @@ function groupList() {
 const groupPeople = (key) =>
   key === "all" ? students : students.filter((s) => s.batch === (key === "" ? null : Number(key)));
 
+// Each group button only touches the people it is actually about.
+const GROUP_ACTIONS = {
+  onduty: {
+    pick: (s) => !s.onDuty,
+    apply: (s) => {
+      s.onDuty = true;
+      if (!s.at) s.at = s.spot;
+    },
+  },
+  offduty: {
+    pick: (s) => s.onDuty,
+    apply: (s) => {
+      s.onDuty = false;
+      s.onShift = false;
+      s.coveringFor = null;
+    },
+  },
+  onshift: {
+    pick: (s) => s.onDuty && !s.onShift,
+    apply: (s) => {
+      s.onShift = true;
+      if (!s.at) s.at = s.spot;
+    },
+  },
+  offshift: {
+    pick: (s) => s.onDuty && s.onShift,
+    apply: (s) => {
+      s.onShift = false;
+    },
+  },
+};
+
+const GROUP_BUTTONS = [
+  ["onduty", "All on duty", ""],
+  ["offduty", "All off duty", " ghost"],
+  ["onshift", "All on shift", ""],
+  ["offshift", "All off shift", " ghost"],
+];
+
 function renderBatches() {
   batchBarEl.innerHTML = groupList()
     .map(({ key, label, people }) => {
       const onDuty = people.filter((s) => s.onDuty).length;
       const onShift = people.filter((s) => s.onDuty && s.onShift).length;
       const empty = people.length === 0;
-      const dis = empty ? "disabled" : "";
       const cls = ["batch", key === "all" ? "is-all" : "", onShift ? "is-on" : ""].filter(Boolean).join(" ");
+      const buttons = GROUP_BUTTONS.map(([act, text, extra]) => {
+        const n = people.filter(GROUP_ACTIONS[act].pick).length;
+        const primary = act === "onshift" && n > 0 ? " primary" : "";
+        return `<button type="button" class="btn tiny${extra}${primary}" data-group="${esc(key)}" data-group-act="${act}" ${n ? "" : "disabled"}>${text}</button>`;
+      }).join("");
       return `
       <div class="${cls}">
         <div class="batch-txt">
           <b>${esc(label)}</b>
           <span>${empty ? "Nobody here yet" : `${onDuty} on duty · ${onShift} on shift`}</span>
         </div>
-        <div class="batch-acts">
-          <button type="button" class="btn tiny" data-group="${esc(key)}" data-group-act="onduty" ${dis}>All on duty</button>
-          <button type="button" class="btn tiny ghost" data-group="${esc(key)}" data-group-act="offduty" ${dis}>All off duty</button>
-          <button type="button" class="btn tiny${!empty && !onShift ? " primary" : ""}" data-group="${esc(key)}" data-group-act="onshift" ${dis}>All on shift</button>
-          <button type="button" class="btn tiny ghost" data-group="${esc(key)}" data-group-act="offshift" ${dis}>All off shift</button>
-        </div>
+        <div class="batch-acts">${buttons}</div>
       </div>`;
     })
     .join("");
@@ -317,32 +355,22 @@ batchBarEl.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-group-act]");
   if (!btn) return;
 
-  const action = btn.dataset.groupAct;
-  const people = groupPeople(btn.dataset.group);
+  const action = GROUP_ACTIONS[btn.dataset.groupAct];
+  if (!action) return;
+
+  const group = btn.dataset.group;
+  const people = groupPeople(group).filter(action.pick);
   if (!people.length) return;
 
-  people.forEach((s) => {
-    switch (action) {
-      case "onduty":
-      case "onshift":
-        // On duty means working, the same as ticking a card; untick shift for a break.
-        s.onDuty = true;
-        s.onShift = true;
-        if (!s.at) s.at = s.spot;
-        break;
-      case "offshift":
-        s.onDuty = true;
-        s.onShift = false;
-        break;
-      case "offduty":
-        s.onDuty = false;
-        s.onShift = false;
-        s.coveringFor = null;
-        break;
-      default:
-        return;
-    }
-  });
+  // Clearing the whole roster is the one action worth a second tap.
+  if (group === "all" && btn.dataset.groupAct === "offduty") {
+    const ok = window.confirm(
+      `Take all ${people.length} volunteers off duty?\n\nThis clears duty, shift and any cover for the whole roster.`,
+    );
+    if (!ok) return;
+  }
+
+  people.forEach(action.apply);
 
   localSave(students);
   if (mode === "live") people.forEach((s) => pushStudent(s).catch((err) => console.warn("[group]", err)));

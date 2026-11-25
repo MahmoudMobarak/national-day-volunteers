@@ -5,7 +5,7 @@ A mobile-friendly duty board for the National Day volunteers. Static files only 
 - 34 volunteers from the finalized roster, 6 duty spots, batch timetable built in.
 - Each volunteer has **On duty** and **On shift** checkboxes, a **Location** picker (only while on duty), a **Batch** picker and a **phone** field.
 - Ticking **On duty** also turns **On shift** on, since they are working. Untick **On shift** on its own to keep them at the venue but on a break — the card then reads *Off shift*.
-- The bar at the top of the page puts a whole batch **on** or **off shift** in one tap (Batch 1, Batch 2, or the volunteers with no batch).
+- The bar at the top of the page has four buttons for **Everyone**, and again for each batch (Batch 1, Batch 2, no batch): **All on duty** (marks people on duty, ready for a shift), **All off duty** (clears duty, shift and cover — asks first for the whole roster), **All on shift** (puts those already on duty back to work), **All off shift** (a break for those currently working; nobody is put on duty by it). Each button only changes the people it applies to and is disabled when there is nobody to change.
 - **Assign replacement** on anyone who is not on duty sends another volunteer to their spot; both cards show who covers whom.
 - **Add** new volunteers at any time (name, spot, batch, phone).
 - Search by name, spot, batch or phone; filter by status.
