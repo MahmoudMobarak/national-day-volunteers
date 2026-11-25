@@ -260,6 +260,60 @@ body {
   color: var(--amber);
 }
 
+/* ---------- batch shift controls ---------- */
+
+.batches {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.batch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 4px solid #cfd4da;
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: var(--shadow);
+}
+
+.batch.is-on {
+  border-left-color: var(--green);
+}
+
+.batch-txt {
+  flex: 1;
+  min-width: 0;
+}
+
+.batch-txt b {
+  display: block;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.batch-txt span {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.batch-acts {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 /* ---------- toolbar ---------- */
 
 .toolbar {
@@ -528,6 +582,10 @@ body {
 
 .field.block {
   margin-bottom: 12px;
+}
+
+.field.wide {
+  grid-column: 1 / -1;
 }
 
 .flabel {

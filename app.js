@@ -24,6 +24,13 @@ const replaceWho = document.getElementById("replaceWho");
 const replaceClose = document.getElementById("replaceClose");
 const replaceSearch = document.getElementById("replaceSearch");
 const replaceList = document.getElementById("replaceList");
+const batchBarEl = document.getElementById("batchBar");
+
+const BATCHES = [
+  { key: "1", label: "Batch 1", batch: 1 },
+  { key: "2", label: "Batch 2", batch: 2 },
+  { key: "", label: "No batch", batch: null },
+];
 
 let students = [];
 let query = "";
@@ -77,6 +84,7 @@ function initials(name) {
 
 function render() {
   renderStats();
+  renderBatches();
   renderChips();
   renderList();
   renderSync();
@@ -107,6 +115,26 @@ function renderChips() {
         `<button type="button" class="chip${filter === key ? " active" : ""}" data-filter="${key}">${label} <span>${n}</span></button>`,
     )
     .join("");
+}
+
+function renderBatches() {
+  batchBarEl.innerHTML = BATCHES.map(({ key, label, batch }) => {
+    const people = students.filter((s) => s.batch === batch);
+    const on = people.filter((s) => s.onDuty && s.onShift).length;
+    const off = people.length - on;
+    const empty = people.length === 0;
+    return `
+      <div class="batch${on ? " is-on" : ""}">
+        <div class="batch-txt">
+          <b>${esc(label)}</b>
+          <span>${empty ? "Nobody here yet" : `${on} on shift · ${off} off shift`}</span>
+        </div>
+        <div class="batch-acts">
+          <button type="button" class="btn tiny${!empty && !off ? " primary" : ""}" data-batch-on="${esc(key)}" ${empty ? "disabled" : ""}>On shift</button>
+          <button type="button" class="btn tiny ghost" data-batch-off="${esc(key)}" ${empty ? "disabled" : ""}>Off shift</button>
+        </div>
+      </div>`;
+  }).join("");
 }
 
 function renderSync() {
@@ -157,6 +185,14 @@ function cardHTML(s) {
         </select>
       </label>
       <label class="field">
+        <span class="flabel">Batch</span>
+        <select data-act="batch" aria-label="Batch">
+          <option value="" ${s.batch ? "" : "selected"}>No batch</option>
+          <option value="1" ${s.batch === 1 ? "selected" : ""}>Batch 1</option>
+          <option value="2" ${s.batch === 2 ? "selected" : ""}>Batch 2</option>
+        </select>
+      </label>
+      <label class="field wide">
         <span class="flabel">Phone</span>
         <input type="tel" inputmode="tel" data-act="phone" value="${esc(s.phone)}" placeholder="Add number" aria-label="Phone number" />
       </label>
@@ -173,6 +209,7 @@ function renderList() {
     return (
       s.name.toLowerCase().includes(q) ||
       s.spot.toLowerCase().includes(q) ||
+      (s.batch ? `batch ${s.batch}` : "no batch").includes(q) ||
       (s.at || "").toLowerCase().includes(q) ||
       s.phone.toLowerCase().includes(q)
     );
@@ -210,6 +247,8 @@ listEl.addEventListener("change", (e) => {
     case "duty":
       s.onDuty = el.checked;
       if (s.onDuty) {
+        // Coming on duty puts them on shift too - untick "On shift" to send them on a break.
+        s.onShift = true;
         if (!s.at) s.at = s.spot;
       } else {
         s.onShift = false;
@@ -226,6 +265,9 @@ listEl.addEventListener("change", (e) => {
     case "spot":
       s.at = el.value;
       if (s.at) s.onDuty = true;
+      break;
+    case "batch":
+      s.batch = el.value ? Number(el.value) : null;
       break;
     case "phone":
       s.phone = el.value.trim();
@@ -250,6 +292,29 @@ listEl.addEventListener("click", (e) => {
     s.onShift = false;
     commit(s);
   }
+});
+
+batchBarEl.addEventListener("click", (e) => {
+  const onBtn = e.target.closest("[data-batch-on]");
+  const offBtn = onBtn ? null : e.target.closest("[data-batch-off]");
+  if (!onBtn && !offBtn) return;
+
+  const key = onBtn ? onBtn.dataset.batchOn : offBtn.dataset.batchOff;
+  const batch = key === "" ? null : Number(key);
+  const people = students.filter((s) => s.batch === batch);
+  if (!people.length) return;
+
+  const turnOn = !!onBtn;
+  people.forEach((s) => {
+    s.onDuty = true;
+    s.onShift = turnOn;
+    if (!s.at) s.at = s.spot;
+  });
+
+  localSave(students);
+  if (mode === "live") people.forEach((s) => pushStudent(s).catch((err) => console.warn("[batch]", err)));
+  else sendLocal(students);
+  render();
 });
 
 chipsEl.addEventListener("click", (e) => {
